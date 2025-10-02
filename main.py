@@ -11,12 +11,12 @@ from pydantic import BaseModel, Field
 from langchain_ollama import ChatOllama
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
-import dotenv
-from dotenv import load_dotenv
-load_dotenv()
+# import dotenv
+# from dotenv import load_dotenv
+# load_dotenv()
 
-import os
-os.environ['GOOGLE_API_KEY']=os.getenv('GOOGLE_API_KEY')
+# import os
+# os.environ['GOOGLE_API_KEY']=os.getenv('GOOGLE_API_KEY')
 
 # --- Page Configuration ---
 CATEGORIES = ["Food", "Travel", "Entertainment", "Utilities", "Rent", "Other"]
