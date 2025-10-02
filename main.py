@@ -103,87 +103,7 @@ def create_pdf_summary(summary_text: str):
 
     return pdf.output(dest='S').encode('latin-1')
 
-
-# st.title("AI Expense Tracker")
-
-# ### initialise session state for storing expenses
-# if 'expenses' not in st.session_state:
-#     st.session_state.expenses = []
-
-# # --- Input Form ---
-# st.subheader("Add a New Expense")
-# CATEGORIES = ["Food", "Rent", "Travel", "Entertainment", "Utilities", "Other"]
-
-# with st.form("expense_form", clear_on_submit=True):
-#     col_form1, col_form2, col_form3 = st.columns(3)
-#     with col_form1:
-#         description = st.text_input("Description", placeholder="Groceries")
-#     with col_form2:
-#         category = st.selectbox("Category",CATEGORIES)
-#     with col_form3:
-#         amount = st.number_input("Amount",min_value=0.01,format="%.2f")
-
-#     submitted = st.form_submit_button("Add Expense", type="primary")
-
-# if submitted:
-#     new_expense = {
-#         "Date": datetime.date.today(),
-#         "Description": description if description else " ",
-#         "Category": category,
-#         "Amount": amount,
-#     }
-#     st.session_state.expenses.append(new_expense)
-#     st.success(f"Logged: ${amount:.2f} for {category}")
-
-
-# st.divider()
-
-# # --- Display Expenses and Summaries ---
-# if st.session_state.expenses:
-#     expenses_df = pd.DataFrame(st.session_state.expenses)
-#     expenses_df['Date'] = pd.to_datetime(expenses_df['Date'])
-
-#     col1, col2 = st.columns([3,2])
-
-#     with col1:
-#         st.subheader("Recent Expenses")
-#         st.dataframe(
-#             expenses_df.sort_values(by="Date", ascending=False).style.format({"Amount":"${:.2f}"}),
-#             use_container_width=True,
-#             hide_index=True
-#         )
-
-#     with col2:
-#         st.subheader("Expense Summary")
-        
-#         summary_df=expenses_df.groupby('Category')['Amount'].sum().reset_index()
-#         summary_df=summary_df.sort_values(by="Amount",ascending=False)
-#         st.bar_chart(summary_df.set_index('Category')['Amount'])
-#         total_expenses=expenses_df['Amount'].sum()
-#         st.metric(label="Total Expenses",value=f"${total_expenses:,.2f}")
-        
-#         if st.button("Generate My Spending Summary", type="secondary"):
-#             with st.spinner("The AI is analyzing your spending..."):
-#                 ai_summary = generate_ai_summary(expenses_df)
-#                 if ai_summary:
-#                     st.write(ai_summary)
-                    
-#                     # Generate PDF in memory
-#                     pdf_bytes = create_pdf_summary(ai_summary)
-                    
-#                     # Add download button
-#                     st.download_button(
-#                         label="Download as PDF",
-#                         data=pdf_bytes,
-#                         file_name="expense_summary.pdf",
-#                         mime="application/pdf"
-#                     )
-
-# else:
-#     st.info("Your expense list is empty. Add an expense above to get started.")
-
-st.title("🗣️ Conversational AI Expense Tracker")
-st.write("Just type what you spent money on, and the AI will handle the rest!")
+st.title("AI Expense Tracker")
 
 ### Initialise session state for storing expenses
 if 'expenses' not in st.session_state:
@@ -209,9 +129,9 @@ if submitted and query:
             "Amount": parsed_expense.amount,
         }
         st.session_state.expenses.append(new_expense)
-        st.success(f"Logged: ${parsed_expense.amount:.2f} for '{parsed_expense.description.capitalize()}' (Category: **{parsed_expense.category}**)")
+        st.success(f"Logged: ${parsed_expense.amount:.2f} for '{parsed_expense.description.capitalize()}' ")
 elif submitted and not query:
-    st.warning("Please enter your expense details.")
+    st.warning("Enter your expense details.")
 
 st.divider()
 
@@ -233,8 +153,8 @@ if st.session_state.expenses:
     with col2:
         st.subheader("Expense Summary")
         
-        summary_df = expenses_df.groupby('Category')['Amount'].sum().reset_index()
-        summary_df = summary_df.sort_values(by="Amount", ascending=False)
+        summary_df=expenses_df.groupby('Category')['Amount'].sum().reset_index()
+        summary_df=summary_df.sort_values(by="Amount", ascending=False)
         st.bar_chart(summary_df.set_index('Category')['Amount'])
         total_expenses = expenses_df['Amount'].sum()
         st.metric(label="Total Expenses", value=f"${total_expenses:,.2f}")
