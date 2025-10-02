@@ -2,7 +2,8 @@ import streamlit as st
 import pandas as pd
 import datetime
 from typing import Literal, Optional
-from prompts import summary_prompt
+from prompts import summary_prompt,category_prompt
+from langchain.output_parsers import PydanticOutputParser
 from fpdf import FPDF
 
 from pydantic import BaseModel, Field
@@ -17,10 +18,49 @@ from langchain_core.prompts import ChatPromptTemplate
 # os.environ['GOOGLE_API_KEY']=os.getenv('GOOGLE_API_KEY')
 
 # --- Page Configuration ---
+CATEGORIES = ["Food", "Travel", "Entertainment", "Utilities", "Rent", "Other"]
+CategoryLiteral = Literal["Food", "Travel", "Entertainment", "Utilities", "Rent", "Other"]
+
+class Expense(BaseModel):
+    """Represents a single expense with its amount, description, and category."""
+    amount: float = Field(description="The numerical amount of the expense.")
+    description: str = Field(description="A detailed description of what the expense was for.")
+    category: CategoryLiteral = Field(description=f"The category of the expense. Must be one of {', '.join(CATEGORIES)}")
+
+
+
+
+
+def parse_expense_query(query: str) -> Expense | None:
+    """
+    Parses a natural language query to extract expense details (amount, description, category).
+    """
+    parser = PydanticOutputParser(pydantic_object=Expense)
+    
+
+
+    prompt=category_prompt(parser=parser)
+    llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)
+    chain = prompt | llm | parser
+
+    try:
+        parsed_result = chain.invoke({
+            "query": query,
+            "date": datetime.date.today().strftime("%Y-%m-%d")
+        })
+        return parsed_result
+    except Exception as e:
+        st.error(f"Failed to parse your request. Please try again. Error: {e}")
+        return None
+
+
 st.set_page_config(
     page_title="AI Expense Tracker",
     layout="wide"
 )
+
+
+
 
 
 def generate_ai_summary(expenses_df: pd.DataFrame):
@@ -63,37 +103,114 @@ def create_pdf_summary(summary_text: str):
     return pdf.output(dest='S').encode('latin-1')
 
 
-st.title("AI Expense Tracker")
+# st.title("AI Expense Tracker")
 
-### initialise session state for storing expenses
+# ### initialise session state for storing expenses
+# if 'expenses' not in st.session_state:
+#     st.session_state.expenses = []
+
+# # --- Input Form ---
+# st.subheader("Add a New Expense")
+# CATEGORIES = ["Food", "Rent", "Travel", "Entertainment", "Utilities", "Other"]
+
+# with st.form("expense_form", clear_on_submit=True):
+#     col_form1, col_form2, col_form3 = st.columns(3)
+#     with col_form1:
+#         description = st.text_input("Description", placeholder="Groceries")
+#     with col_form2:
+#         category = st.selectbox("Category",CATEGORIES)
+#     with col_form3:
+#         amount = st.number_input("Amount",min_value=0.01,format="%.2f")
+
+#     submitted = st.form_submit_button("Add Expense", type="primary")
+
+# if submitted:
+#     new_expense = {
+#         "Date": datetime.date.today(),
+#         "Description": description if description else " ",
+#         "Category": category,
+#         "Amount": amount,
+#     }
+#     st.session_state.expenses.append(new_expense)
+#     st.success(f"Logged: ${amount:.2f} for {category}")
+
+
+# st.divider()
+
+# # --- Display Expenses and Summaries ---
+# if st.session_state.expenses:
+#     expenses_df = pd.DataFrame(st.session_state.expenses)
+#     expenses_df['Date'] = pd.to_datetime(expenses_df['Date'])
+
+#     col1, col2 = st.columns([3,2])
+
+#     with col1:
+#         st.subheader("Recent Expenses")
+#         st.dataframe(
+#             expenses_df.sort_values(by="Date", ascending=False).style.format({"Amount":"${:.2f}"}),
+#             use_container_width=True,
+#             hide_index=True
+#         )
+
+#     with col2:
+#         st.subheader("Expense Summary")
+        
+#         summary_df=expenses_df.groupby('Category')['Amount'].sum().reset_index()
+#         summary_df=summary_df.sort_values(by="Amount",ascending=False)
+#         st.bar_chart(summary_df.set_index('Category')['Amount'])
+#         total_expenses=expenses_df['Amount'].sum()
+#         st.metric(label="Total Expenses",value=f"${total_expenses:,.2f}")
+        
+#         if st.button("Generate My Spending Summary", type="secondary"):
+#             with st.spinner("The AI is analyzing your spending..."):
+#                 ai_summary = generate_ai_summary(expenses_df)
+#                 if ai_summary:
+#                     st.write(ai_summary)
+                    
+#                     # Generate PDF in memory
+#                     pdf_bytes = create_pdf_summary(ai_summary)
+                    
+#                     # Add download button
+#                     st.download_button(
+#                         label="Download as PDF",
+#                         data=pdf_bytes,
+#                         file_name="expense_summary.pdf",
+#                         mime="application/pdf"
+#                     )
+
+# else:
+#     st.info("Your expense list is empty. Add an expense above to get started.")
+
+st.title("🗣️ Conversational AI Expense Tracker")
+st.write("Just type what you spent money on, and the AI will handle the rest!")
+
+### Initialise session state for storing expenses
 if 'expenses' not in st.session_state:
     st.session_state.expenses = []
 
-# --- Input Form ---
-st.subheader("Add a New Expense")
-CATEGORIES = ["Food", "Rent", "Travel", "Entertainment", "Utilities", "Other"]
+# --- Input Form for Conversational Input ---
+st.subheader("Log a New Expense")
 
 with st.form("expense_form", clear_on_submit=True):
-    col_form1, col_form2, col_form3 = st.columns(3)
-    with col_form1:
-        description = st.text_input("Description", placeholder="Groceries")
-    with col_form2:
-        category = st.selectbox("Category",CATEGORIES)
-    with col_form3:
-        amount = st.number_input("Amount",min_value=0.01,format="%.2f")
+    query = st.text_input("Enter your expense", placeholder="e.g., '$7 Uber Eats for team dinner on client visit'")
+    submitted = st.form_submit_button("Log Expense", type="primary", use_container_width=True)
 
-    submitted = st.form_submit_button("Add Expense", type="primary")
-
-if submitted:
-    new_expense = {
-        "Date": datetime.date.today(),
-        "Description": description if description else " ",
-        "Category": category,
-        "Amount": amount,
-    }
-    st.session_state.expenses.append(new_expense)
-    st.success(f"Logged: ${amount:.2f} for {category}")
-
+# --- Form Submission Logic ---
+if submitted and query:
+    with st.spinner("AI is processing your expense..."):
+        parsed_expense = parse_expense_query(query)
+    
+    if parsed_expense:
+        new_expense = {
+            "Date": datetime.date.today(),
+            "Description": parsed_expense.description.capitalize(),
+            "Category": parsed_expense.category,
+            "Amount": parsed_expense.amount,
+        }
+        st.session_state.expenses.append(new_expense)
+        st.success(f"Logged: ${parsed_expense.amount:.2f} for '{parsed_expense.description.capitalize()}' (Category: **{parsed_expense.category}**)")
+elif submitted and not query:
+    st.warning("Please enter your expense details.")
 
 st.divider()
 
@@ -102,12 +219,12 @@ if st.session_state.expenses:
     expenses_df = pd.DataFrame(st.session_state.expenses)
     expenses_df['Date'] = pd.to_datetime(expenses_df['Date'])
 
-    col1, col2 = st.columns([3,2])
+    col1, col2 = st.columns([3, 2])
 
     with col1:
         st.subheader("Recent Expenses")
         st.dataframe(
-            expenses_df.sort_values(by="Date", ascending=False).style.format({"Amount": "${:.2f}"}),
+            expenses_df.sort_values(by="Date", ascending=False).style.format({"Amount":"${:.2f}"}),
             use_container_width=True,
             hide_index=True
         )
@@ -115,29 +232,26 @@ if st.session_state.expenses:
     with col2:
         st.subheader("Expense Summary")
         
-        summary_df=expenses_df.groupby('Category')['Amount'].sum().reset_index()
-        summary_df=summary_df.sort_values(by="Amount",ascending=False)
+        summary_df = expenses_df.groupby('Category')['Amount'].sum().reset_index()
+        summary_df = summary_df.sort_values(by="Amount", ascending=False)
         st.bar_chart(summary_df.set_index('Category')['Amount'])
-        total_expenses=expenses_df['Amount'].sum()
-        st.metric(label="Total Expenses",value=f"${total_expenses:,.2f}")
+        total_expenses = expenses_df['Amount'].sum()
+        st.metric(label="Total Expenses", value=f"${total_expenses:,.2f}")
         
         if st.button("Generate My Spending Summary", type="secondary"):
             with st.spinner("The AI is analyzing your spending..."):
-                ai_summary = generate_ai_summary(expenses_df)
-                if ai_summary:
-                    st.write(ai_summary)
-                    
-                    # Generate PDF in memory
-                    pdf_bytes = create_pdf_summary(ai_summary)
-                    
-                    # Add download button
-                    st.download_button(
-                        label="Download as PDF",
-                        data=pdf_bytes,
-                        file_name="expense_summary.pdf",
-                        mime="application/pdf"
-                    )
-
+                try:
+                    ai_summary = generate_ai_summary(expenses_df)
+                    if ai_summary:
+                        st.markdown(ai_summary)
+                        pdf_bytes = create_pdf_summary(ai_summary)
+                        st.download_button(
+                            label="Download as PDF",
+                            data=pdf_bytes,
+                            file_name="expense_summary.pdf",
+                            mime="application/pdf"
+                        )
+                except NameError:
+                    st.error("The `summary_prompt` function is not defined. Please ensure `prompts.py` exists.")
 else:
     st.info("Your expense list is empty. Add an expense above to get started.")
-
