@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import datetime
 from typing import Literal, Optional
-from prompts import summary_prompt,categories_prompt
+from prompts import summary_prompt,cprompt
 from langchain.output_parsers import PydanticOutputParser
 from fpdf import FPDF
 
@@ -39,7 +39,7 @@ def parse_expense_query(query: str) -> Expense | None:
     
 
 
-    prompt=categories_prompt(parser=parser)
+    prompt=cprompt(parser=parser)
     llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)
     chain = prompt | llm | parser
 
