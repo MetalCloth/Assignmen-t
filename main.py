@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import datetime
 from typing import Literal, Optional
-from prompts import summary_prompt,category_prompt
+from prompts import summary_prompt,categories_prompt
 from langchain.output_parsers import PydanticOutputParser
 from fpdf import FPDF
 
@@ -10,12 +10,12 @@ from pydantic import BaseModel, Field
 from langchain_ollama import ChatOllama
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
-# import dotenv
-# from dotenv import load_dotenv
-# load_dotenv()
+import dotenv
+from dotenv import load_dotenv
+load_dotenv()
 
-# import os
-# os.environ['GOOGLE_API_KEY']=os.getenv('GOOGLE_API_KEY')
+import os
+os.environ['GOOGLE_API_KEY']=os.getenv('GOOGLE_API_KEY')
 
 # --- Page Configuration ---
 CATEGORIES = ["Food", "Travel", "Entertainment", "Utilities", "Rent", "Other"]
@@ -39,7 +39,7 @@ def parse_expense_query(query: str) -> Expense | None:
     
 
 
-    prompt=category_prompt(parser=parser)
+    prompt=categories_prompt(parser=parser)
     llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)
     chain = prompt | llm | parser
 

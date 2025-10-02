@@ -44,7 +44,7 @@ Follow these rules precisely:
         ]
     )
 
-def category_prompt(parser):
+def categories_prompt(parser):
     return ChatPromptTemplate.from_template(template="""You are an expert at processing and extracting expense data from natural language text.
     Analyze the user's query and extract the expense amount, a clear description, and the most appropriate category from the provided list.
     Today's date is {date}.
