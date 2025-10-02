@@ -2,7 +2,8 @@ import streamlit as st
 import pandas as pd
 import datetime
 from typing import Literal, Optional
-from prompts import summary_prompt,cprompt
+from prompts import summary_prompt
+from prompts import cprompt
 from langchain.output_parsers import PydanticOutputParser
 from fpdf import FPDF
 
