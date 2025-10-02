@@ -1,0 +1,7 @@
+langchain 
+langchain-community 
+pydantic
+langchain-ollama
+streamlit
+pandas
+fpdf
