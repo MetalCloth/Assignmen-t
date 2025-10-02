@@ -5,3 +5,4 @@ langchain-ollama
 streamlit
 pandas
 fpdf
+langchain-google-genai

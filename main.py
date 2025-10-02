@@ -7,7 +7,14 @@ from fpdf import FPDF
 
 from pydantic import BaseModel, Field
 from langchain_ollama import ChatOllama
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
+# import dotenv
+# from dotenv import load_dotenv
+# load_dotenv()
+
+# import os
+# os.environ['GOOGLE_API_KEY']=os.getenv('GOOGLE_API_KEY')
 
 # --- Page Configuration ---
 st.set_page_config(
@@ -18,7 +25,8 @@ st.set_page_config(
 
 def generate_ai_summary(expenses_df: pd.DataFrame):
     """Generates a summary using the AI chain."""
-    llm=ChatOllama(model="llama3", temperature=0)
+    # llm=ChatOllama(model="llama3", temperature=0)
+    llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)
     prompt=summary_prompt()
     chain=prompt | llm 
     data=expenses_df.to_string(index=False, columns=["Date", "Category", "Amount", "Description"])
