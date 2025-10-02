@@ -2,6 +2,8 @@
 
 A simple yet powerful web application that allows you to manually track your daily expenses, visualize spending habits, and generate intelligent, AI-powered summaries of your financial activity. You can also download these summaries as a PDF for your records.
 
+Try it on :
+  [Link](https://metalcloth-assignmen-t-main-2xezlz.streamlit.app)
 ---
 
 ## 📸 Application Preview
@@ -38,5 +40,6 @@ Follow these steps to get the AI Expense Tracker running on your local machine.
 
 ```bash
 git clone <https://github.com/MetalCloth/Assignmen-t>
+
 
 
