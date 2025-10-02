@@ -6,7 +6,7 @@ A simple yet powerful web application that allows you to manually track your dai
 
 ## 📸 Application Preview
 
-*(Replace the placeholder below with a screenshot or GIF of your running application.)*
+[Watch Demo Video](https://github.com/user-attachments/assets/274d34ae-cd68-4451-8c34-c2d21a2783ec)
 
 ---
 
@@ -38,4 +38,5 @@ Follow these steps to get the AI Expense Tracker running on your local machine.
 
 ```bash
 git clone <https://github.com/MetalCloth/Assignmen-t>
+
 
